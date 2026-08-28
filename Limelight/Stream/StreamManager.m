@@ -78,6 +78,13 @@
     // Populate the config's version fields from serverinfo
     _config.appVersion = appversion;
     _config.gfeVersion = gfeVersion;
+    NSString* codecSupport = [serverInfoResp getStringTag:@"ServerCodecModeSupport"];
+    _config.serverCodecModeSupport = codecSupport != nil ? [codecSupport intValue] : SCM_H264;
+    if (_config.serverCodecModeSupport == 0) {
+        // H.264 is mandatory for compatible GameStream/Sunshine hosts. Older
+        // serverinfo responses may omit or return zero for this extension.
+        _config.serverCodecModeSupport = SCM_H264;
+    }
     
     // resumeApp and launchApp handle calling launchFailed
     NSString* sessionUrl;
