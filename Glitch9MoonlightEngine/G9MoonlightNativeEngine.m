@@ -141,6 +141,14 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     self.failureHandler = nil;
 }
 
+- (void)sendMouseDeltaX:(int16_t)deltaX deltaY:(int16_t)deltaY {
+    LiSendMouseMoveEvent(deltaX, deltaY);
+}
+
+- (void)sendMouseButton:(uint8_t)button pressed:(BOOL)pressed {
+    LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, button);
+}
+
 - (void)startPairing:(NSString *)PIN {
     if (self.pairingReadyHandler) {
         NSString *relayFailure = self.pairingReadyHandler();

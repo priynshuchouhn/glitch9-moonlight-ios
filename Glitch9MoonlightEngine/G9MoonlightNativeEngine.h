@@ -25,6 +25,8 @@ typedef NSString * _Nullable (^G9MoonlightPairingReadyHandler)(void);
         onFailure:(G9MoonlightFailureHandler)onFailure
             error:(NSError **)error;
 - (void)stop;
+- (void)sendMouseDeltaX:(int16_t)deltaX deltaY:(int16_t)deltaY;
+- (void)sendMouseButton:(uint8_t)button pressed:(BOOL)pressed;
 
 @end
 
