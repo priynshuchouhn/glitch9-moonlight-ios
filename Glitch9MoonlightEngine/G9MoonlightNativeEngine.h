@@ -6,6 +6,7 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void (^G9MoonlightVoidHandler)(void);
 typedef void (^G9MoonlightFailureHandler)(NSString *code, NSString *message);
 typedef NSString * _Nullable (^G9MoonlightPairingReadyHandler)(void);
+typedef void (^G9MoonlightRumbleHandler)(uint16_t controller, uint16_t lowFrequency, uint16_t highFrequency);
 
 @interface G9MoonlightNativeEngine : NSObject
 
@@ -34,6 +35,17 @@ typedef NSString * _Nullable (^G9MoonlightPairingReadyHandler)(void);
                     leftStickY:(int16_t)leftStickY
                    rightStickX:(int16_t)rightStickX
                    rightStickY:(int16_t)rightStickY;
+- (void)setActiveGamepadMask:(uint16_t)activeGamepadMask;
+- (void)sendController:(uint8_t)controller
+            activeMask:(uint16_t)activeMask
+               buttons:(uint32_t)buttons
+           leftTrigger:(uint8_t)leftTrigger
+          rightTrigger:(uint8_t)rightTrigger
+             leftStickX:(int16_t)leftStickX
+             leftStickY:(int16_t)leftStickY
+            rightStickX:(int16_t)rightStickX
+            rightStickY:(int16_t)rightStickY;
+- (void)setRumbleHandler:(nullable G9MoonlightRumbleHandler)handler;
 
 @end
 

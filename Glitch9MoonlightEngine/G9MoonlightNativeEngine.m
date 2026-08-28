@@ -22,9 +22,17 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
 @property(nonatomic, copy) G9MoonlightPairingReadyHandler pairingReadyHandler;
 @property(nonatomic) NSData *pairedCertificate;
 @property(nonatomic) NSString *pairingFailure;
+@property(nonatomic) uint16_t activeGamepadMask;
+@property(nonatomic, copy) G9MoonlightRumbleHandler rumbleHandler;
 @end
 
 @implementation G9MoonlightNativeEngine
+
+- (instancetype)init {
+    self = [super init];
+    if (self) _activeGamepadMask = 1;
+    return self;
+}
 
 - (NSString *)endpointForHost:(NSString *)host port:(uint16_t)port {
     if ([host containsString:@":"] && ![host hasPrefix:@"["]) {
@@ -123,8 +131,8 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     // requires the connected Moonlight client to issue launch/resume within
     // that pre-authorized, allocated session.
     config.resumeOnly = NO;
-    config.multiController = NO;
-    config.gamepadMask = 1;
+    config.multiController = YES;
+    config.gamepadMask = self.activeGamepadMask;
     config.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
     config.supportedVideoFormats = VIDEO_FORMAT_H264;
     self.streamingHandler = onStreaming;
@@ -160,6 +168,25 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
                           leftStickX, leftStickY, rightStickX, rightStickY);
 }
 
+- (void)setActiveGamepadMask:(uint16_t)activeGamepadMask {
+    _activeGamepadMask = activeGamepadMask ?: 1;
+}
+
+- (void)sendController:(uint8_t)controller
+            activeMask:(uint16_t)activeMask
+               buttons:(uint32_t)buttons
+           leftTrigger:(uint8_t)leftTrigger
+          rightTrigger:(uint8_t)rightTrigger
+             leftStickX:(int16_t)leftStickX
+             leftStickY:(int16_t)leftStickY
+            rightStickX:(int16_t)rightStickX
+            rightStickY:(int16_t)rightStickY {
+    LiSendMultiControllerEvent(controller, activeMask, (int)buttons, leftTrigger, rightTrigger,
+                               leftStickX, leftStickY, rightStickX, rightStickY);
+}
+
+- (void)setRumbleHandler:(G9MoonlightRumbleHandler)handler { _rumbleHandler = [handler copy]; }
+
 - (void)startPairing:(NSString *)PIN {
     if (self.pairingReadyHandler) {
         NSString *relayFailure = self.pairingReadyHandler();
@@ -181,7 +208,9 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     if (self.failureHandler) self.failureHandler(@"stream_interrupted", [NSString stringWithFormat:@"Moonlight stage %s failed (%d).", stageName, errorCode]);
 }
 - (void)launchFailed:(NSString *)message { if (self.failureHandler) self.failureHandler(@"desktop_unavailable", message); }
-- (void)rumble:(unsigned short)c lowFreqMotor:(unsigned short)l highFreqMotor:(unsigned short)h {}
+- (void)rumble:(unsigned short)c lowFreqMotor:(unsigned short)l highFreqMotor:(unsigned short)h {
+    if (self.rumbleHandler) self.rumbleHandler(c, l, h);
+}
 - (void)connectionStatusUpdate:(int)status {}
 - (void)setHdrMode:(bool)enabled {}
 
