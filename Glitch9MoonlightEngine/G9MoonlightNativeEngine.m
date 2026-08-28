@@ -157,6 +157,15 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, button);
 }
 
+- (void)sendKeyboard:(uint16_t)virtualKey pressed:(BOOL)pressed modifiers:(uint8_t)modifiers {
+    LiSendKeyboardEvent(0x8000 | virtualKey, pressed ? KEY_ACTION_DOWN : KEY_ACTION_UP, modifiers);
+}
+
+- (void)sendText:(NSString *)text {
+    NSData *utf8 = [text dataUsingEncoding:NSUTF8StringEncoding];
+    if (utf8.length > 0) LiSendUtf8TextEvent(utf8.bytes, (unsigned int)utf8.length);
+}
+
 - (void)sendControllerButtons:(uint32_t)buttons
                   leftTrigger:(uint8_t)leftTrigger
                  rightTrigger:(uint8_t)rightTrigger

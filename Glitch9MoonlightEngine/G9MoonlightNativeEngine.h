@@ -28,6 +28,8 @@ typedef void (^G9MoonlightRumbleHandler)(uint16_t controller, uint16_t lowFreque
 - (void)stop;
 - (void)sendMouseDeltaX:(int16_t)deltaX deltaY:(int16_t)deltaY;
 - (void)sendMouseButton:(uint8_t)button pressed:(BOOL)pressed;
+- (void)sendKeyboard:(uint16_t)virtualKey pressed:(BOOL)pressed modifiers:(uint8_t)modifiers;
+- (void)sendText:(NSString *)text;
 - (void)sendControllerButtons:(uint32_t)buttons
                   leftTrigger:(uint8_t)leftTrigger
                  rightTrigger:(uint8_t)rightTrigger
