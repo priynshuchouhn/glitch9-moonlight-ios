@@ -36,9 +36,12 @@
 }
 
 - (void) main {
-    // We have to call startPairing before calling any other _callback functions
     NSString* PIN = _pin ?: [self generatePIN];
-    [_callback startPairing:PIN];
+    // Interactive clients display the PIN immediately. Automated relay clients
+    // must wait until Sunshine's long-poll pairing request is in flight.
+    if (_pin == nil) {
+        [_callback startPairing:PIN];
+    }
     
     ServerInfoResponse* serverInfoResp = [[ServerInfoResponse alloc] init];
     [_httpManager executeRequestSynchronously:[HttpRequest requestForResponse:serverInfoResp withUrlRequest:[_httpManager newServerInfoRequest:false]
@@ -101,7 +104,21 @@
     Log(LOG_I, @"PIN: %@, salt %@", PIN, salt);
     
     HttpResponse* pairResp = [[HttpResponse alloc] init];
-    [_httpManager executeRequestSynchronously:[HttpRequest requestForResponse:pairResp withUrlRequest:[_httpManager newPairRequest:salt clientCert:_clientCert]]];
+    HttpRequest* pairRequest = [HttpRequest requestForResponse:pairResp withUrlRequest:[_httpManager newPairRequest:salt clientCert:_clientCert]];
+    if (_pin != nil) {
+        dispatch_semaphore_t requestStarted = dispatch_semaphore_create(0);
+        dispatch_semaphore_t requestCompleted = dispatch_semaphore_create(0);
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            dispatch_semaphore_signal(requestStarted);
+            [self->_httpManager executeRequestSynchronously:pairRequest];
+            dispatch_semaphore_signal(requestCompleted);
+        });
+        dispatch_semaphore_wait(requestStarted, DISPATCH_TIME_FOREVER);
+        [_callback startPairing:PIN];
+        dispatch_semaphore_wait(requestCompleted, DISPATCH_TIME_FOREVER);
+    } else {
+        [_httpManager executeRequestSynchronously:pairRequest];
+    }
     if (![self verifyResponseStatus:pairResp]) {
         // GFE does not allow pairing while a server is busy, but Sunshine does. We give it a try and display the busy error if it fails.
         if ([state hasSuffix:@"_SERVER_BUSY"]) {
