@@ -13,6 +13,7 @@
 
 #define SDL_MAIN_HANDLED
 #import <SDL.h>
+#import <SDL_main.h>
 
 #include "Limelight.h"
 #include "opus_multistream.h"
@@ -191,6 +192,14 @@ int ArInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, v
 {
     int err;
     SDL_AudioSpec want, have;
+
+    // Moonlight normally calls this from its UIApplication main(). When the
+    // stream stack is embedded as a framework, Flutter owns main(), so SDL
+    // must be explicitly marked ready before initializing audio.
+    static dispatch_once_t sdlMainReadyOnce;
+    dispatch_once(&sdlMainReadyOnce, ^{
+        SDL_SetMainReady();
+    });
     
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
         Log(LOG_E, @"Failed to initialize audio subsystem: %s\n", SDL_GetError());
