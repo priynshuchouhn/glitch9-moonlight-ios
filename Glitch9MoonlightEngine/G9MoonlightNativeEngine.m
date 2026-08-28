@@ -25,6 +25,13 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
 
 @implementation G9MoonlightNativeEngine
 
+- (NSString *)endpointForHost:(NSString *)host port:(uint16_t)port {
+    if ([host containsString:@":"] && ![host hasPrefix:@"["]) {
+        return [NSString stringWithFormat:@"[%@]:%u", host, port];
+    }
+    return [NSString stringWithFormat:@"%@:%u", host, port];
+}
+
 - (BOOL)isIdentityValid:(NSData *)identity { return identity.length > 0; }
 
 - (NSData *)pairHost:(NSString *)host port:(uint16_t)port pin:(NSString *)pin
@@ -39,7 +46,8 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     self.pairingReadyHandler = pairingReady;
     self.pairedCertificate = nil;
     self.pairingFailure = nil;
-    HttpManager *http = [[HttpManager alloc] initWithAddress:host httpsPort:port serverCert:nil];
+    NSString *endpoint = [self endpointForHost:host port:port];
+    HttpManager *http = [[HttpManager alloc] initWithAddress:endpoint httpsPort:0 serverCert:nil];
     PairManager *pair = [[PairManager alloc] initWithManager:http clientCert:clientCertificate pin:pin callback:self];
     [pair main];
     self.pairingReadyHandler = nil;
@@ -63,7 +71,8 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
             userInfo:@{NSLocalizedDescriptionKey: @"The Moonlight stream configuration is incomplete."}];
         return NO;
     }
-    HttpManager *http = [[HttpManager alloc] initWithAddress:host httpsPort:port serverCert:identity];
+    NSString *endpoint = [self endpointForHost:host port:port];
+    HttpManager *http = [[HttpManager alloc] initWithAddress:endpoint httpsPort:0 serverCert:identity];
     AppListResponse *apps = [[AppListResponse alloc] init];
     [http executeRequestSynchronously:[HttpRequest requestForResponse:apps withUrlRequest:[http newAppListRequest]]];
     if (![apps isStatusOk]) {
@@ -84,8 +93,8 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
         return NO;
     }
     StreamConfiguration *config = [[StreamConfiguration alloc] init];
-    config.host = host;
-    config.httpsPort = port;
+    config.host = endpoint;
+    config.httpsPort = 0;
     config.appID = selectedApp.id;
     config.appName = selectedApp.name;
     config.serverCert = identity;
