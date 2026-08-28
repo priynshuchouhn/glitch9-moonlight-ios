@@ -105,7 +105,10 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     config.optimizeGameSettings = YES;
     config.playAudioOnPC = NO;
     config.useFramePacing = YES;
-    config.resumeOnly = YES;
+    // The Glitch9 platform session is created by the website. Sunshine still
+    // requires the connected Moonlight client to issue launch/resume within
+    // that pre-authorized, allocated session.
+    config.resumeOnly = NO;
     config.multiController = NO;
     config.gamepadMask = 0;
     config.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
