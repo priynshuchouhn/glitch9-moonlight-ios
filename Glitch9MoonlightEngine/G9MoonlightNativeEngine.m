@@ -124,7 +124,7 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     // that pre-authorized, allocated session.
     config.resumeOnly = NO;
     config.multiController = NO;
-    config.gamepadMask = 0;
+    config.gamepadMask = 1;
     config.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
     config.supportedVideoFormats = VIDEO_FORMAT_H264;
     self.streamingHandler = onStreaming;
@@ -147,6 +147,17 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
 
 - (void)sendMouseButton:(uint8_t)button pressed:(BOOL)pressed {
     LiSendMouseButtonEvent(pressed ? BUTTON_ACTION_PRESS : BUTTON_ACTION_RELEASE, button);
+}
+
+- (void)sendControllerButtons:(uint32_t)buttons
+                  leftTrigger:(uint8_t)leftTrigger
+                 rightTrigger:(uint8_t)rightTrigger
+                    leftStickX:(int16_t)leftStickX
+                    leftStickY:(int16_t)leftStickY
+                   rightStickX:(int16_t)rightStickX
+                   rightStickY:(int16_t)rightStickY {
+    LiSendControllerEvent((int)buttons, leftTrigger, rightTrigger,
+                          leftStickX, leftStickY, rightStickX, rightStickY);
 }
 
 - (void)startPairing:(NSString *)PIN {
@@ -173,6 +184,7 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
 - (void)rumble:(unsigned short)c lowFreqMotor:(unsigned short)l highFreqMotor:(unsigned short)h {}
 - (void)connectionStatusUpdate:(int)status {}
 - (void)setHdrMode:(bool)enabled {}
+
 - (void)rumbleTriggers:(uint16_t)c leftTrigger:(uint16_t)l rightTrigger:(uint16_t)r {}
 - (void)setMotionEventState:(uint16_t)c motionType:(uint8_t)t reportRateHz:(uint16_t)r {}
 - (void)setControllerLed:(uint16_t)c r:(uint8_t)r g:(uint8_t)g b:(uint8_t)b {}

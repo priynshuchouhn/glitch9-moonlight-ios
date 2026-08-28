@@ -27,6 +27,13 @@ typedef NSString * _Nullable (^G9MoonlightPairingReadyHandler)(void);
 - (void)stop;
 - (void)sendMouseDeltaX:(int16_t)deltaX deltaY:(int16_t)deltaY;
 - (void)sendMouseButton:(uint8_t)button pressed:(BOOL)pressed;
+- (void)sendControllerButtons:(uint32_t)buttons
+                  leftTrigger:(uint8_t)leftTrigger
+                 rightTrigger:(uint8_t)rightTrigger
+                    leftStickX:(int16_t)leftStickX
+                    leftStickY:(int16_t)leftStickY
+                   rightStickX:(int16_t)rightStickX
+                   rightStickY:(int16_t)rightStickY;
 
 @end
 
