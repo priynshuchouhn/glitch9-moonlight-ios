@@ -6,6 +6,7 @@
 #import "HttpManager.h"
 #import "HttpRequest.h"
 #import "PairManager.h"
+#import "ServerInfoResponse.h"
 #import "StreamConfiguration.h"
 #import "StreamManager.h"
 #import "TemporaryApp.h"
@@ -33,6 +34,18 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
 }
 
 - (BOOL)isIdentityValid:(NSData *)identity { return identity.length > 0; }
+
+- (BOOL)isIdentityValid:(NSData *)identity host:(NSString *)host port:(uint16_t)port {
+    if (identity.length == 0 || host.length == 0 || port == 0) return NO;
+    NSString *endpoint = [self endpointForHost:host port:port];
+    HttpManager *http = [[HttpManager alloc] initWithAddress:endpoint httpsPort:0 serverCert:identity];
+    ServerInfoResponse *serverInfo = [[ServerInfoResponse alloc] init];
+    [http executeRequestSynchronously:[HttpRequest requestForResponse:serverInfo
+        withUrlRequest:[http newServerInfoRequest:false]]];
+    NSInteger pairStatus = 0;
+    return [serverInfo isStatusOk] &&
+        [serverInfo getIntTag:@"PairStatus" value:&pairStatus] && pairStatus == 1;
+}
 
 - (NSData *)pairHost:(NSString *)host port:(uint16_t)port pin:(NSString *)pin
         pairingReady:(G9MoonlightPairingReadyHandler)pairingReady error:(NSError **)error {
@@ -76,8 +89,9 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     AppListResponse *apps = [[AppListResponse alloc] init];
     [http executeRequestSynchronously:[HttpRequest requestForResponse:apps withUrlRequest:[http newAppListRequest]]];
     if (![apps isStatusOk]) {
+        NSString *reason = apps.statusMessage.length > 0 ? apps.statusMessage : @"No response from Sunshine.";
         if (error) *error = [NSError errorWithDomain:G9MoonlightErrorDomain code:5
-            userInfo:@{NSLocalizedDescriptionKey: @"Unable to read the Sunshine application list."}];
+            userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Unable to read the Sunshine application list: %@ (status %ld).", reason, (long)apps.statusCode]}];
         return NO;
     }
     TemporaryApp *selectedApp = nil;

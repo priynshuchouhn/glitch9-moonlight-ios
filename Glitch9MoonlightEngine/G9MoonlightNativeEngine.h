@@ -10,6 +10,7 @@ typedef NSString * _Nullable (^G9MoonlightPairingReadyHandler)(void);
 @interface G9MoonlightNativeEngine : NSObject
 
 - (BOOL)isIdentityValid:(NSData *)identity;
+- (BOOL)isIdentityValid:(NSData *)identity host:(NSString *)host port:(uint16_t)port;
 - (nullable NSData *)pairHost:(NSString *)host
                          port:(uint16_t)port
                           pin:(NSString *)pin
