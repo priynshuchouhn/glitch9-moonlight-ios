@@ -103,8 +103,22 @@
         }
     }
     
-    // Populate RTSP session URL from launch/resume response
-    _config.rtspSessionUrl = sessionUrl;
+    // The DC exposes a shifted Sunshine port range per slot. Sunshine can
+    // return an internal/default address in sessionUrl0, so normalize the
+    // authority to the public endpoint while preserving the session path and
+    // encryption scheme. HTTP 47989 and RTSP 48010 differ by 21 ports.
+    NSString* publicHost = [Utils addressPortStringToAddress:_config.host];
+    unsigned short publicHttpPort = [Utils addressPortStringToPort:_config.host];
+    unsigned short publicRtspPort = publicHttpPort + (48010 - 47989);
+    NSURLComponents* rtspComponents = sessionUrl != nil ? [NSURLComponents componentsWithString:sessionUrl] : nil;
+    if (rtspComponents != nil) {
+        rtspComponents.host = publicHost;
+        rtspComponents.port = @(publicRtspPort);
+        _config.rtspSessionUrl = rtspComponents.string;
+    } else {
+        NSString* safeHost = [publicHost containsString:@":"] ? [NSString stringWithFormat:@"[%@]", publicHost] : publicHost;
+        _config.rtspSessionUrl = [NSString stringWithFormat:@"rtsp://%@:%u", safeHost, publicRtspPort];
+    }
     
     // Initializing the renderer must be done on the main thread
     dispatch_async(dispatch_get_main_queue(), ^{
