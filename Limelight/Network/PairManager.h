@@ -14,6 +14,8 @@
 - (void) pairSuccessful:(NSData*)serverCert;
 - (void) pairFailed:(NSString*)message;
 - (void) alreadyPaired;
+@optional
+- (BOOL) pairingShouldAbort;
 
 @end
 

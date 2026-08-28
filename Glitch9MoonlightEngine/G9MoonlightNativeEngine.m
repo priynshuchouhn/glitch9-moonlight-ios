@@ -124,7 +124,13 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
     self.failureHandler = nil;
 }
 
-- (void)startPairing:(NSString *)PIN { if (self.pairingReadyHandler) self.pairingReadyHandler(); }
+- (void)startPairing:(NSString *)PIN {
+    if (self.pairingReadyHandler) {
+        NSString *relayFailure = self.pairingReadyHandler();
+        if (relayFailure.length > 0) self.pairingFailure = relayFailure;
+    }
+}
+- (BOOL)pairingShouldAbort { return self.pairingFailure.length > 0; }
 - (void)pairSuccessful:(NSData *)serverCert { self.pairedCertificate = serverCert; }
 - (void)pairFailed:(NSString *)message { self.pairingFailure = message; }
 - (void)alreadyPaired { self.pairingFailure = @"The host is already paired with another stored identity."; }

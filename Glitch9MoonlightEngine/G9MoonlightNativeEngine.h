@@ -5,7 +5,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^G9MoonlightVoidHandler)(void);
 typedef void (^G9MoonlightFailureHandler)(NSString *code, NSString *message);
-typedef void (^G9MoonlightPairingReadyHandler)(void);
+typedef NSString * _Nullable (^G9MoonlightPairingReadyHandler)(void);
 
 @interface G9MoonlightNativeEngine : NSObject
 

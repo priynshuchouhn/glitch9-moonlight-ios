@@ -120,6 +120,10 @@
         [NSThread sleepForTimeInterval:0.5];
         NSLog(@"[Glitch9Moonlight] Pairing request registered; relaying PIN");
         [_callback startPairing:PIN];
+        if ([_callback respondsToSelector:@selector(pairingShouldAbort)] && [_callback pairingShouldAbort]) {
+            NSLog(@"[Glitch9Moonlight] Aborting pairing after PIN relay failure");
+            return;
+        }
         NSLog(@"[Glitch9Moonlight] PIN relay returned; awaiting host response");
         dispatch_semaphore_wait(requestCompleted, DISPATCH_TIME_FOREVER);
         NSLog(@"[Glitch9Moonlight] Initial host pairing response received");
