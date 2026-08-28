@@ -7,8 +7,6 @@
 //
 
 #import "VideoDecoderRenderer.h"
-#import "StreamView.h"
-
 #include <libavcodec/avcodec.h>
 #include <libavcodec/cbs.h>
 #include <libavcodec/cbs_av1.h>
@@ -20,7 +18,7 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
                               int write_seq_header);
 
 @implementation VideoDecoderRenderer {
-    StreamView* _view;
+    UIView* _view;
     id<ConnectionCallbacks> _callbacks;
     float _streamAspectRatio;
     
@@ -77,7 +75,7 @@ extern int ff_isom_write_av1c(AVIOContext *pb, const uint8_t *buf, int size,
     }
 }
 
-- (id)initWithView:(StreamView*)view callbacks:(id<ConnectionCallbacks>)callbacks streamAspectRatio:(float)aspectRatio useFramePacing:(BOOL)useFramePacing
+- (id)initWithView:(UIView*)view callbacks:(id<ConnectionCallbacks>)callbacks streamAspectRatio:(float)aspectRatio useFramePacing:(BOOL)useFramePacing
 {
     self = [super init];
     

@@ -19,19 +19,25 @@
     HttpManager* _httpManager;
     NSData* _clientCert;
     id<PairCallback> _callback;
+    NSString* _pin;
 }
 
 - (id) initWithManager:(HttpManager*)httpManager clientCert:(NSData*)clientCert callback:(id<PairCallback>)callback {
+    return [self initWithManager:httpManager clientCert:clientCert pin:nil callback:callback];
+}
+
+- (id) initWithManager:(HttpManager*)httpManager clientCert:(NSData*)clientCert pin:(NSString*)pin callback:(id<PairCallback>)callback {
     self = [super init];
     _httpManager = httpManager;
     _clientCert = clientCert;
     _callback = callback;
+    _pin = [pin copy];
     return self;
 }
 
 - (void) main {
     // We have to call startPairing before calling any other _callback functions
-    NSString* PIN = [self generatePIN];
+    NSString* PIN = _pin ?: [self generatePIN];
     [_callback startPairing:PIN];
     
     ServerInfoResponse* serverInfoResp = [[ServerInfoResponse alloc] init];

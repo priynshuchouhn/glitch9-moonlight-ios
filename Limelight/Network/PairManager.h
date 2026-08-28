@@ -19,4 +19,5 @@
 
 @interface PairManager : NSOperation
 - (id) initWithManager:(HttpManager*)httpManager clientCert:(NSData*)clientCert callback:(id<PairCallback>)callback;
+- (id) initWithManager:(HttpManager*)httpManager clientCert:(NSData*)clientCert pin:(NSString*)pin callback:(id<PairCallback>)callback;
 @end

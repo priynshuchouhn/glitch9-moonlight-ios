@@ -11,7 +11,6 @@
 #import "HttpManager.h"
 #import "Utils.h"
 
-#import "StreamView.h"
 #import "ServerInfoResponse.h"
 #import "HttpResponse.h"
 #import "HttpRequest.h"
@@ -87,6 +86,9 @@
         if (![self resumeApp:hMan receiveSessionUrl:&sessionUrl]) {
             return;
         }
+    } else if (_config.resumeOnly) {
+        [_callbacks launchFailed:@"No website-started session is active on the host."];
+        return;
     } else {
         // Start app
         if (![self launchApp:hMan receiveSessionUrl:&sessionUrl]) {

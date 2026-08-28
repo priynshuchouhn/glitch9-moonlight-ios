@@ -30,6 +30,7 @@
 @property int supportedVideoFormats;
 @property BOOL multiController;
 @property BOOL useFramePacing;
+@property BOOL resumeOnly;
 @property NSData* serverCert;
 
 @end
