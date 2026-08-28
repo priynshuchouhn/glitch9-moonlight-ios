@@ -103,6 +103,7 @@ engine_sources = %w[
   Limelight/Network/HttpManager.m
   Limelight/Network/HttpRequest.m
   Limelight/Network/HttpResponse.m
+  Limelight/Network/AppListResponse.m
   Limelight/Network/PairManager.m
   Limelight/Network/ServerInfoResponse.m
   Limelight/Stream/Connection.m

@@ -1,11 +1,14 @@
 #import "G9MoonlightNativeEngine.h"
 
 #import "ConnectionCallbacks.h"
+#import "AppListResponse.h"
 #import "CryptoManager.h"
 #import "HttpManager.h"
+#import "HttpRequest.h"
 #import "PairManager.h"
 #import "StreamConfiguration.h"
 #import "StreamManager.h"
+#import "TemporaryApp.h"
 
 #include <Limelight.h>
 
@@ -60,11 +63,31 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
             userInfo:@{NSLocalizedDescriptionKey: @"The Moonlight stream configuration is incomplete."}];
         return NO;
     }
+    HttpManager *http = [[HttpManager alloc] initWithAddress:host httpsPort:port serverCert:identity];
+    AppListResponse *apps = [[AppListResponse alloc] init];
+    [http executeRequestSynchronously:[HttpRequest requestForResponse:apps withUrlRequest:[http newAppListRequest]]];
+    if (![apps isStatusOk]) {
+        if (error) *error = [NSError errorWithDomain:G9MoonlightErrorDomain code:5
+            userInfo:@{NSLocalizedDescriptionKey: @"Unable to read the Sunshine application list."}];
+        return NO;
+    }
+    TemporaryApp *selectedApp = nil;
+    for (TemporaryApp *candidate in [apps getAppList]) {
+        if ([candidate.name caseInsensitiveCompare:application] == NSOrderedSame) {
+            selectedApp = candidate;
+            break;
+        }
+    }
+    if (!selectedApp.id) {
+        if (error) *error = [NSError errorWithDomain:G9MoonlightErrorDomain code:6
+            userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Sunshine has no application named '%@'.", application]}];
+        return NO;
+    }
     StreamConfiguration *config = [[StreamConfiguration alloc] init];
     config.host = host;
     config.httpsPort = port;
-    config.appID = application;
-    config.appName = application;
+    config.appID = selectedApp.id;
+    config.appName = selectedApp.name;
     config.serverCert = identity;
     config.width = 1920;
     config.height = 1080;

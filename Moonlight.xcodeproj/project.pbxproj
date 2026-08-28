@@ -171,6 +171,7 @@
 		FBDE86E019F7A837001C18A8 /* UIComputerView.m in Sources */ = {isa = PBXBuildFile; fileRef = FBDE86DF19F7A837001C18A8 /* UIComputerView.m */; };
 		FBDE86E619F82297001C18A8 /* UIAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = FBDE86E519F82297001C18A8 /* UIAppView.m */; };
 		FD878E6A3CAF09D9C9781F8D /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = FB89462219F646E200339C8A /* Utils.m */; };
+		FF66044D1644B07EEEE1B235 /* AppListResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9AFD3F1A7E127D00872C98 /* AppListResponse.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -981,6 +982,7 @@
 				FD878E6A3CAF09D9C9781F8D /* Utils.m in Sources */,
 				BF1FAF4891557B2476DAEE22 /* Limelight.xcdatamodeld in Sources */,
 				9B7DD60879E63AA0EE0CBC65 /* G9MoonlightNativeEngine.m in Sources */,
+				FF66044D1644B07EEEE1B235 /* AppListResponse.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
