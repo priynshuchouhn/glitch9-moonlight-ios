@@ -114,8 +114,15 @@
             dispatch_semaphore_signal(requestCompleted);
         });
         dispatch_semaphore_wait(requestStarted, DISPATCH_TIME_FOREVER);
+        // Give Sunshine enough time to register the long-poll request before
+        // the backend submits the PIN. Without this, fast relay connections
+        // can deliver the PIN before a pairing attempt exists.
+        [NSThread sleepForTimeInterval:0.5];
+        NSLog(@"[Glitch9Moonlight] Pairing request registered; relaying PIN");
         [_callback startPairing:PIN];
+        NSLog(@"[Glitch9Moonlight] PIN relay returned; awaiting host response");
         dispatch_semaphore_wait(requestCompleted, DISPATCH_TIME_FOREVER);
+        NSLog(@"[Glitch9Moonlight] Initial host pairing response received");
     } else {
         [_httpManager executeRequestSynchronously:pairRequest];
     }
