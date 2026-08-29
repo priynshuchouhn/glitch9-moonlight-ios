@@ -15,6 +15,32 @@
 
 static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
 
+struct G9KeyEvent { uint16_t keycode; uint16_t modifierKeycode; uint8_t modifier; };
+
+static struct G9KeyEvent G9TranslateCharacter(unichar character) {
+    struct G9KeyEvent event = {0, 0, 0};
+    if (character >= 'a' && character <= 'z') event.keycode = character - 'a' + 0x41;
+    else if (character >= 'A' && character <= 'Z') {
+        event.keycode = character; event.modifier = MODIFIER_SHIFT; event.modifierKeycode = 0x10;
+    } else if (character >= '0' && character <= '9') event.keycode = character;
+    else {
+        NSString *plain = @" `-=[]\\;',./\t";
+        const uint16_t plainCodes[] = {0x20, 0xC0, 0xBD, 0xBB, 0xDB, 0xDD, 0xDC, 0xBA, 0xDE, 0xBC, 0xBE, 0xBF, 0x09};
+        NSRange range = [plain rangeOfString:[NSString stringWithCharacters:&character length:1]];
+        if (range.location != NSNotFound) event.keycode = plainCodes[range.location];
+        else {
+            NSString *shifted = @"~!@#$%^&*()_+{}|:\"<>?";
+            const uint16_t shiftedCodes[] = {0xC0, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0xBD, 0xBB, 0xDB, 0xDD, 0xDC, 0xBA, 0xDE, 0xBC, 0xBE, 0xBF};
+            range = [shifted rangeOfString:[NSString stringWithCharacters:&character length:1]];
+            if (range.location != NSNotFound) {
+                event.keycode = shiftedCodes[range.location];
+                event.modifier = MODIFIER_SHIFT; event.modifierKeycode = 0x10;
+            }
+        }
+    }
+    return event;
+}
+
 @interface G9MoonlightNativeEngine () <PairCallback, ConnectionCallbacks>
 @property(nonatomic) StreamManager *streamManager;
 @property(nonatomic, copy) G9MoonlightVoidHandler streamingHandler;
@@ -162,8 +188,38 @@ static NSString *const G9MoonlightErrorDomain = @"com.glitch9.MoonlightEngine";
 }
 
 - (void)sendText:(NSString *)text {
-    NSData *utf8 = [text dataUsingEncoding:NSUTF8StringEncoding];
-    if (utf8.length > 0) LiSendUtf8TextEvent(utf8.bytes, (unsigned int)utf8.length);
+    if (text.length == 0) return;
+
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0), ^{
+        // Match Moonlight's software-keyboard path: normal characters are sent
+        // as low-level key events for immediate delivery. UTF-8 text injection
+        // is reserved for characters that cannot be represented as key events.
+        for (NSUInteger index = 0; index < text.length; index++) {
+            struct G9KeyEvent event = G9TranslateCharacter([text characterAtIndex:index]);
+            if (event.keycode == 0) {
+                NSData *utf8 = [text dataUsingEncoding:NSUTF8StringEncoding];
+                if (utf8.length > 0) {
+                    LiSendUtf8TextEvent(utf8.bytes, (unsigned int)utf8.length);
+                }
+                return;
+            }
+        }
+
+        for (NSUInteger index = 0; index < text.length; index++) {
+            struct G9KeyEvent event = G9TranslateCharacter([text characterAtIndex:index]);
+            if (event.modifier != 0) {
+                LiSendKeyboardEvent(event.modifierKeycode, KEY_ACTION_DOWN, event.modifier);
+            }
+            LiSendKeyboardEvent2(event.keycode, KEY_ACTION_DOWN, event.modifier,
+                                 SS_KBE_FLAG_NON_NORMALIZED);
+            usleep(50 * 1000);
+            LiSendKeyboardEvent2(event.keycode, KEY_ACTION_UP, event.modifier,
+                                 SS_KBE_FLAG_NON_NORMALIZED);
+            if (event.modifier != 0) {
+                LiSendKeyboardEvent(event.modifierKeycode, KEY_ACTION_UP, event.modifier);
+            }
+        }
+    });
 }
 
 - (void)sendControllerButtons:(uint32_t)buttons
